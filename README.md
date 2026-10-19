@@ -1,56 +1,64 @@
-# Welcome to your Expo app 👋
+# Pyloxdactyl
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Native Android and iOS client for the Pyloxdactyl panel. Connect to a panel, sign in (including two-factor authentication), manage servers from the console, and administer panel resources as a root administrator.
 
-## Get started
+Built with Expo SDK 58, React Native, Expo Router, and TypeScript. Releases are produced with EAS Build and delivered with EAS Update.
 
-1. Install dependencies
+## Requirements
 
-   ```bash
-   npm install
-   ```
+- Node.js 20 or newer
+- A running Pyloxdactyl panel that exposes the mobile API at `/api/mobile`
+- For store builds: an Expo account and an EAS project (`eas init`)
 
-2. Start the app
+The panel must be reachable from the device. Panels served over plain HTTP are supported: Android enables cleartext traffic through `expo-build-properties`, and iOS allows arbitrary loads through `NSAppTransportSecurity` in `ios.infoPlist`.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Development
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Open the app in a development build, an emulator/simulator, or Expo Go (Expo Go only includes bundled native modules; use a development build after adding native code).
 
-### Other setup steps
+Useful checks:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm run typecheck
+npm run lint
+npx expo-doctor
+```
 
-## Learn more
+Install Expo packages with `npx expo install <package>` so versions match the installed SDK.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project layout
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `src/app/` — Expo Router routes: connection and login flow, server tabs, server screens, admin screens
+- `src/components/ui.tsx` — shared UI primitives and theming
+- `src/lib/` — API client, types, formatting, secure storage, permission helpers
+- `src/state/auth.tsx` — authentication state, panel session persistence, 401 handling
+- `src/hooks/` — data loading and color scheme hooks
 
-## Join the community
+## Building with EAS
 
-Join our community of developers creating universal apps.
+```bash
+npx eas-cli@latest login
+npx eas-cli@latest init
+npx eas-cli@latest build --profile preview --platform android
+npx eas-cli@latest build --profile production --platform all
+npx eas-cli@latest submit --profile production --platform ios
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+`eas.json` defines three profiles:
+
+- `development` — development client, internal distribution
+- `preview` — internal distribution, APK on Android
+- `production` — store builds with automatic version increment
+
+App versioning uses `appVersionSource: remote`. Signing credentials are managed by EAS.
+
+## Release notes
+
+- File upload, download, archive extraction sharing, and public file links are not exposed in the mobile UI yet. Browsing, editing, renaming, deleting, and creating directories are available.
+- The iOS App Store may require a justification for `NSAllowsArbitraryLoads`; prefer an HTTPS panel for production distribution.
+- Panel sessions are stored with `expo-secure-store` (localStorage on web). Signing out revokes the mobile API key on the panel.
