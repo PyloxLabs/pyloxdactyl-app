@@ -71,7 +71,9 @@ jobs:
           echo "--- resolve expo-updates dir ---"
           node -e "console.log(require('path').dirname(require.resolve('expo-updates/package.json')));"
           echo "--- createUpdatesResources ---"
+          mkdir -p debug-updates-res
           node "$(node -e "console.log(require('path').dirname(require.resolve('expo-updates/package.json')));")/utils/build/createUpdatesResources.js" android "$PWD" "$PWD/debug-updates-res" all "$ENTRY_FILE"
+          ls -la debug-updates-res
           echo "--- done ---"
 
       - name: Build release APK
