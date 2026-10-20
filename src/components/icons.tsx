@@ -125,6 +125,15 @@ export const SaveIcon = createIcon('SaveIcon', (color) => (
   </>
 ));
 
+export const UsersIcon = createIcon('UsersIcon', (color) => (
+  <>
+    <Circle cx={9} cy={8} r={3.4} stroke={color} strokeWidth={STROKE} />
+    <Path d="M2.8 20.2a6.4 6.4 0 0 1 12.4 0" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    <Path d="M16.4 4.6a3.4 3.4 0 0 1 0 6.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    <Path d="M18.6 14.4a6.4 6.4 0 0 1 2.6 5.2" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+  </>
+));
+
 export const UserPlusIcon = createIcon('UserPlusIcon', (color) => (
   <>
     <Circle cx={10} cy={8} r={3.4} stroke={color} strokeWidth={STROKE} />
@@ -269,13 +278,14 @@ export const PlusIcon = createIcon('PlusIcon', (color) => (
 
 export const GearIcon = createIcon('GearIcon', (color) => (
   <>
-    <Circle cx={12} cy={12} r={3.2} stroke={color} strokeWidth={STROKE} />
     <Path
-      d="M19.5 14.2a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56v.17a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H4a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 5.65 8.1a1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 8.08 3.34l.06.06a1.7 1.7 0 0 0 1.87.34H10a1.7 1.7 0 0 0 1.03-1.56V2a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V8a1.7 1.7 0 0 0 1.56 1.03H22a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z"
+      d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
       stroke={color}
-      strokeWidth={1.5}
+      strokeWidth={STROKE}
+      strokeLinecap="round"
       strokeLinejoin="round"
     />
+    <Circle cx={12} cy={12} r={3} stroke={color} strokeWidth={STROKE} />
   </>
 ));
 
@@ -329,5 +339,46 @@ export const UploadIcon = createIcon('UploadIcon', (color) => (
       strokeLinejoin="round"
     />
   </>
+));
+
+export const DatabaseIcon = createIcon('DatabaseIcon', (color) => (
+  <>
+    <Path
+      d="M4 6.2c0-1.5 3.6-2.7 8-2.7s8 1.2 8 2.7-3.6 2.7-8 2.7-8-1.2-8-2.7Z"
+      stroke={color}
+      strokeWidth={STROKE}
+      strokeLinejoin="round"
+      fill={color}
+      fillOpacity={0.16}
+    />
+    <Path d="M4 6.2v11.6c0 1.5 3.6 2.7 8 2.7s8-1.2 8-2.7V6.2" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    <Path d="M4 12c0 1.5 3.6 2.7 8 2.7s8-1.2 8-2.7" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+  </>
+));
+
+export const BackupIcon = createIcon('BackupIcon', (color) => (
+  <>
+    <Path d="M20.2 12a8.2 8.2 0 1 1-2.53-5.92" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    <Path d="M20.4 3.8v4.9h-4.9" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M12 8.6V12l2.4 1.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+  </>
+));
+
+export const ClockIcon = createIcon('ClockIcon', (color) => (
+  <>
+    <Circle cx={12} cy={12} r={8.4} stroke={color} strokeWidth={STROKE} fill={color} fillOpacity={0.16} />
+    <Path d="M12 7.4V12l3 1.9" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+  </>
+));
+
+export const TerminalIcon = createIcon('TerminalIcon', (color) => (
+  <>
+    <Rect x={3.4} y={4.4} width={17.2} height={15.2} rx={2.2} stroke={color} strokeWidth={STROKE} fill={color} fillOpacity={0.16} />
+    <Path d="M7.4 9.4l2.6 2.6-2.6 2.6M12.4 14.6h4.2" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+  </>
+));
+
+export const ChevronRightIcon = createIcon('ChevronRightIcon', (color) => (
+  <Path d="M9.5 5.5l6.5 6.5-6.5 6.5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
 ));
 

@@ -91,7 +91,7 @@ export default function AdminUserScreen() {
     <Screen>
       <Card>
         <Row justify="space-between">
-          <AppText variant="heading">{data.user.username}</AppText>
+          <AppText variant="title">{data.user.username}</AppText>
           <Row gap={6}>
             {data.user.root_admin ? <Pill label="Admin" tone="primary" /> : null}
             {data.user.totp_enabled ? <Pill label="2FA" tone="success" /> : null}

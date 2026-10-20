@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { errorMessage } from '@/lib/format';
 
@@ -13,7 +13,7 @@ export function useLoad<T>(loader: () => Promise<T>, deps: unknown[] = []) {
     loaderRef.current = loader;
   });
 
-  const reload = async (quiet = false) => {
+  const reload = useCallback(async (quiet = false) => {
     if (quiet) setRefreshing(true);
     else setLoading(true);
     try {
@@ -26,11 +26,19 @@ export function useLoad<T>(loader: () => Promise<T>, deps: unknown[] = []) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void reload();
   }, deps);
 
-  return { data, error, loading, refreshing, reload, setData };
+  return {
+    data,
+    error,
+    loading,
+    refreshing,
+    reload,
+    setData,
+    clear: useCallback(() => setData(null), []),
+  };
 }

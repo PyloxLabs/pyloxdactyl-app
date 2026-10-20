@@ -38,6 +38,17 @@ jobs:
       - name: Generate iOS project
         run: npx expo prebuild --platform ios --clean --no-install
 
+      - name: Verify OTA configuration
+        run: |
+          set -e
+          PLIST="$(ls -d ios/*/Supporting/Expo.plist)"
+          echo "plist=$PLIST"
+          grep -q "EXUpdatesURL" "$PLIST"
+          grep -q "EXUpdatesRuntimeVersion" "$PLIST"
+          grep -q "EXUpdatesRequestHeaders" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :EXUpdatesURL" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :EXUpdatesRuntimeVersion" "$PLIST"
+
       - name: Install CocoaPods
         working-directory: ios
         run: pod install

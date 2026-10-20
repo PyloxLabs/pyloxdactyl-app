@@ -45,7 +45,7 @@ export default function AdminSettingsScreen() {
   if (loading && !data) return <Loading label="Loading settings…" />;
 
   return (
-    <Screen>
+    <Screen footer={<Button title="Save settings" onPress={save} loading={saving} />}>
       <AppText variant="title">Panel settings</AppText>
 
       <SectionHeader title="General" />
@@ -104,17 +104,28 @@ export default function AdminSettingsScreen() {
           value={form.captcha_provider ?? 'Disabled'}
           onChange={(value) => update('captcha_provider', value)}
         />
-        <Field label="Turnstile site key" value={form.cloudflare_turnstile_site_key ?? ''} onChangeText={(value) => update('cloudflare_turnstile_site_key', value)} autoCapitalize="none" />
-        <Field label="Turnstile secret" value={form.cloudflare_turnstile_secret_key ?? ''} onChangeText={(value) => update('cloudflare_turnstile_secret_key', value)} autoCapitalize="none" secureTextEntry />
-        <Field label="HCaptcha site key" value={form.hcaptcha_site_key ?? ''} onChangeText={(value) => update('hcaptcha_site_key', value)} autoCapitalize="none" />
-        <Field label="HCaptcha secret" value={form.hcaptcha_secret_key ?? ''} onChangeText={(value) => update('hcaptcha_secret_key', value)} autoCapitalize="none" secureTextEntry />
-        <Field label="Recaptcha site key" value={form.google_recaptcha_site_key ?? ''} onChangeText={(value) => update('google_recaptcha_site_key', value)} autoCapitalize="none" />
-        <Field label="Recaptcha secret" value={form.google_recaptcha_secret_key ?? ''} onChangeText={(value) => update('google_recaptcha_secret_key', value)} autoCapitalize="none" secureTextEntry />
+        {(form.captcha_provider ?? 'Disabled') === 'Cloudflare Turnstile' ? (
+          <>
+            <Field label="Turnstile site key" value={form.cloudflare_turnstile_site_key ?? ''} onChangeText={(value) => update('cloudflare_turnstile_site_key', value)} autoCapitalize="none" />
+            <Field label="Turnstile secret" value={form.cloudflare_turnstile_secret_key ?? ''} onChangeText={(value) => update('cloudflare_turnstile_secret_key', value)} autoCapitalize="none" secureTextEntry />
+          </>
+        ) : null}
+        {(form.captcha_provider ?? 'Disabled') === 'HCaptcha' ? (
+          <>
+            <Field label="HCaptcha site key" value={form.hcaptcha_site_key ?? ''} onChangeText={(value) => update('hcaptcha_site_key', value)} autoCapitalize="none" />
+            <Field label="HCaptcha secret" value={form.hcaptcha_secret_key ?? ''} onChangeText={(value) => update('hcaptcha_secret_key', value)} autoCapitalize="none" secureTextEntry />
+          </>
+        ) : null}
+        {(form.captcha_provider ?? 'Disabled') === 'Google Recaptcha' ? (
+          <>
+            <Field label="Recaptcha site key" value={form.google_recaptcha_site_key ?? ''} onChangeText={(value) => update('google_recaptcha_site_key', value)} autoCapitalize="none" />
+            <Field label="Recaptcha secret" value={form.google_recaptcha_secret_key ?? ''} onChangeText={(value) => update('google_recaptcha_secret_key', value)} autoCapitalize="none" secureTextEntry />
+          </>
+        ) : null}
       </Card>
 
       {error ? <Warning>{error}</Warning> : null}
       {notice ? <Hint>{notice}</Hint> : null}
-      <Button title="Save settings" onPress={save} loading={saving} />
     </Screen>
   );
 }

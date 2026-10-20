@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { AppText, Button, EmptyState, Field, Hint, IconButton, Loading, ModalCard, Row, Warning, useColors } from '@/components/ui';
 import { FileIcon, FolderIcon, FolderPlusIcon } from '@/components/icons';
@@ -8,6 +8,7 @@ import { useLoad } from '@/hooks/use-load';
 import { canServer } from '@/lib/access';
 import { api } from '@/lib/api';
 import { errorMessage, formatBytes, formatDate, joinPath, parentPath } from '@/lib/format';
+import { Radius } from '@/constants/theme';
 import type { FileEntry, Server } from '@/lib/types';
 
 type PromptMode = 'newFolder' | 'rename' | 'move' | 'permissions';
@@ -160,8 +161,8 @@ export default function FilesScreen() {
             style={({ pressed }) => ({
               backgroundColor: colors.backgroundElement,
               borderColor: colors.border,
-              borderWidth: 1,
-              borderRadius: 10,
+              borderWidth: StyleSheet.hairlineWidth + 0.5,
+              borderRadius: Radius.small,
               paddingHorizontal: 12,
               paddingVertical: 10,
               flexDirection: 'row',

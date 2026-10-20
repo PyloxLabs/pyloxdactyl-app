@@ -86,12 +86,13 @@ export default function ServersScreen() {
               <Row gap={16}>
                 <AppText variant="small" color="textSecondary">
                   {live?.connected
-                    ? `CPU ${Math.round(live.cpu ?? 0)}% · RAM ${formatBytes(live.memory)} / ${formatBytes(live.memory_limit)}`
+                    ? `RAM ${formatBytes(live.memory)} / ${formatBytes(live.memory_limit)}`
                     : `Limits: ${item.memory} MB RAM · ${item.disk} MB disk`}
                 </AppText>
               </Row>
               {live?.connected ? (
                 <Row gap={12}>
+                  <Meter label="CPU" value={live.cpu ?? 0} detail={`${Math.round(live.cpu ?? 0)}%`} tone={colors.info} />
                   <Meter label="RAM" value={mem} detail={formatBytes(live.memory)} tone={colors.primary} />
                   <Meter label="Disk" value={disk} detail={formatBytes(live.disk)} tone={colors.warning} />
                 </Row>

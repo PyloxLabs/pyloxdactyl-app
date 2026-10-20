@@ -8,9 +8,9 @@ export function formatBytes(bytes: number | null | undefined, perSecond = false)
   return `${text} ${units[exp]}${perSecond ? '/s' : ''}`;
 }
 
-export function formatUptime(ms: number | null | undefined): string {
-  if (!ms || ms <= 0) return '—';
-  const totalMinutes = Math.floor(ms / 60000);
+export function formatUptime(seconds: number | null | undefined): string {
+  if (!seconds || seconds <= 0) return '—';
+  const totalMinutes = Math.floor(seconds / 60);
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
@@ -68,4 +68,10 @@ export function parentPath(path: string): string {
 export function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
   return 'Something went wrong.';
+}
+
+export function normalizeEmail(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const normalized = email.trim().toLowerCase();
+  return normalized || null;
 }

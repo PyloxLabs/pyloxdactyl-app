@@ -7,6 +7,18 @@
     "icon": "./assets/images/icon.png",
     "scheme": "pyloxdactyl",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1d4fb582-f7d3-452e-84f5-bad54f361da4",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
+    },
     "ios": {
       "bundleIdentifier": "corp.pylox.pyloxdactyl",
       "icon": "./assets/images/icon.png",

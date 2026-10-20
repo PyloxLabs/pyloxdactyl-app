@@ -18,7 +18,7 @@ export default function TabsLayout() {
     <NativeTabs
       tintColor={colors.primary}
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
+      indicatorColor={colors.backgroundSelected}
       labelStyle={{ selected: { color: colors.primary } }}>
       <NativeTabs.Trigger name="servers">
         <NativeTabs.Trigger.Label>Servers</NativeTabs.Trigger.Label>

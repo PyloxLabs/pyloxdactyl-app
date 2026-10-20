@@ -2,10 +2,12 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { View } from 'react-native';
 
-import { AppText, Button, Card, Divider, Field, Hint, KeyValue, ModalCard, Pill, Row, Screen, SectionHeader, SegmentedSlider, Warning } from '@/components/ui';
+import { AppText, Button, Card, Divider, Field, GradientCard, Hint, KeyValue, ModalCard, Pill, Row, Screen, SectionHeader, SegmentedSlider, Warning } from '@/components/ui';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/format';
+import { useUpdates } from '@/hooks/use-updates';
 import { useAuth } from '@/state/auth';
 import { useThemePreference, type ThemePreference } from '@/state/theme';
 
@@ -15,6 +17,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { user, baseUrl, panelName, panelVersion, refreshUser, logout, forgetPanel } = useAuth();
   const { preference, setPreference } = useThemePreference();
+  const updates = useUpdates();
   const [modal, setModal] = useState<ModalKind>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -110,21 +113,21 @@ export default function AccountScreen() {
 
   return (
     <Screen>
-      <AppText variant="title">Account</AppText>
-
-      <Card>
+      <GradientCard>
         <Row justify="space-between">
-          <AppText variant="heading">{user?.username ?? 'Signed in'}</AppText>
+          <View style={{ flex: 1, gap: 4 }}>
+            <AppText variant="heading">{user?.username ?? 'Signed in'}</AppText>
+            <AppText variant="small" color="textSecondary">
+              {user?.email}
+            </AppText>
+          </View>
           {user?.root_admin ? <Pill label="Administrator" tone="primary" /> : null}
         </Row>
-        <AppText variant="small" color="textSecondary">
-          {user?.email}
-        </AppText>
         <Divider />
         <KeyValue label="Panel" value={panelName || 'Pyloxdactyl'} />
         <KeyValue label="Version" value={panelVersion || '—'} />
         <KeyValue label="Address" value={baseUrl ?? '—'} mono />
-      </Card>
+      </GradientCard>
 
       <SectionHeader title="Security" />
       <Card>
@@ -165,6 +168,25 @@ export default function AccountScreen() {
           onChange={setPreference}
         />
         <Hint>Auto follows the light or dark setting on your device.</Hint>
+      </Card>
+
+      <SectionHeader title="Updates" />
+      <Card>
+        <KeyValue label="Runtime" value={updates.runtimeVersion || '—'} mono />
+        <KeyValue label="Channel" value={updates.channel || '—'} mono />
+        <Divider />
+        {updates.phase === 'ready' ? (
+          <Button title="Restart to update" onPress={updates.apply} />
+        ) : (
+          <Button
+            title="Check for updates"
+            variant="secondary"
+            onPress={() => void updates.check()}
+            loading={updates.phase === 'checking' || updates.phase === 'downloading'}
+          />
+        )}
+        {updates.message ? <Hint>{updates.message}</Hint> : null}
+        {!updates.supported ? <Hint>Updates are available in the installed app, not in development.</Hint> : null}
       </Card>
 
       <SectionHeader title="Session" />

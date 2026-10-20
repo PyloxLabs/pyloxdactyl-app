@@ -106,6 +106,7 @@ export default function CreateServerScreen() {
 
   return (
     <Screen>
+      <AppText variant="title">New server</AppText>
       <SectionHeader title="Owner & placement" />
       <Card>
         <AppText variant="label">Owner</AppText>

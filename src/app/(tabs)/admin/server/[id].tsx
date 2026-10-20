@@ -137,7 +137,7 @@ export default function AdminServerScreen() {
     <Screen>
       <Card>
         <Row justify="space-between">
-          <AppText variant="heading" style={{ flex: 1 }} numberOfLines={1}>
+          <AppText variant="title" style={{ flex: 1 }} numberOfLines={1}>
             {server.name}
           </AppText>
           <Pill label={server.status} tone={statusTone(server.status)} />

@@ -8,7 +8,12 @@ export default function ServerLayout() {
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerTintColor: colors.primary }}>
+    <Stack
+      screenOptions={{
+        headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: colors.primary,
+        headerTitleStyle: { color: colors.text, fontWeight: '700' },
+      }}>
       <Stack.Screen name="index" options={{ title: 'Server' }} />
       <Stack.Screen name="files" options={{ title: 'Files' }} />
       <Stack.Screen name="file" options={{ title: 'Edit file' }} />

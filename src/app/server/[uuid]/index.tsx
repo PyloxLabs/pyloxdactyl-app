@@ -1,14 +1,31 @@
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { AppText, Button, Card, Hint, IconButton, Loading, Meter, Pill, Row, Screen, SectionHeader, Warning, useColors } from '@/components/ui';
-import { PlayIcon, PowerIcon, RestartIcon, SendIcon, StopIcon } from '@/components/icons';
+import { AppText, Button, Card, GradientCard, Hint, IconButton, Loading, Meter, Pill, Row, Screen, SectionHeader, Warning, useColors } from '@/components/ui';
+import {
+  BackupIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  DatabaseIcon,
+  FolderIcon,
+  GearIcon,
+  HardDriveIcon,
+  PlayIcon,
+  PowerIcon,
+  RestartIcon,
+  SendIcon,
+  StopIcon,
+  TerminalIcon,
+  UsersIcon,
+} from '@/components/icons';
 import { useLoad } from '@/hooks/use-load';
 import { api, consoleSocketUrl } from '@/lib/api';
 import { canServer } from '@/lib/access';
+import { parseConsoleLine } from '@/lib/console';
 import { errorMessage, formatBytes, formatUptime, percent, statusTone } from '@/lib/format';
 import type { LiveStats, Server } from '@/lib/types';
+import { Fonts, alpha } from '@/constants/theme';
 
 const MAX_LINES = 300;
 
@@ -163,37 +180,49 @@ export default function ConsoleScreen() {
 
   const sections = (
     [
-      { title: 'Files', hint: 'Browse and edit files', href: 'files', allowed: canServer(server, 'files.read') },
-      { title: 'Databases', hint: 'Create and manage databases', href: 'databases', allowed: canServer(server, 'databases.view') },
-      { title: 'Backups', hint: 'Create and restore backups', href: 'backups', allowed: canServer(server, 'backups.view') },
-      { title: 'Schedules', hint: 'Cron tasks for this server', href: 'schedules', allowed: canServer(server, 'schedules.view') },
-      { title: 'Startup', hint: 'Command, variables and image', href: 'startup', allowed: canServer(server, 'startup.view') },
-      { title: 'Subusers', hint: 'Share access with other accounts', href: 'users', allowed: Boolean(server.is_owner) },
-      { title: 'Settings', hint: 'SFTP details and reinstall', href: 'settings', allowed: canServer(server, 'settings.view') },
-    ] as { title: string; hint: string; href: keyof typeof links; allowed: boolean }[]
+      { title: 'Files', hint: 'Browse and edit files', href: 'files', rgb: '168, 85, 247', Icon: FolderIcon, allowed: canServer(server, 'files.read') },
+      { title: 'Databases', hint: 'Create and manage databases', href: 'databases', rgb: '34, 197, 94', Icon: DatabaseIcon, allowed: canServer(server, 'databases.view') },
+      { title: 'Backups', hint: 'Create and restore backups', href: 'backups', rgb: '59, 130, 246', Icon: BackupIcon, allowed: canServer(server, 'backups.view') },
+      { title: 'Schedules', hint: 'Cron tasks for this server', href: 'schedules', rgb: '234, 179, 8', Icon: ClockIcon, allowed: canServer(server, 'schedules.view') },
+      { title: 'Startup', hint: 'Command, variables and image', href: 'startup', rgb: '249, 115, 22', Icon: TerminalIcon, allowed: canServer(server, 'startup.view') },
+      { title: 'Subusers', hint: 'Share access with other accounts', href: 'users', rgb: '14, 165, 233', Icon: UsersIcon, allowed: Boolean(server.is_owner) },
+      { title: 'Settings', hint: 'SFTP details and reinstall', href: 'settings', rgb: '107, 114, 128', Icon: GearIcon, allowed: canServer(server, 'settings.view') },
+    ] as {
+      title: string;
+      hint: string;
+      href: keyof typeof links;
+      rgb: string;
+      Icon: (props: { size?: number; color: string }) => React.ReactNode;
+      allowed: boolean;
+    }[]
   ).filter((section) => section.allowed);
 
   return (
     <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => reload()} tintColor={colors.primary} />}>
-      <Row justify="space-between" align="flex-start">
-        <View style={{ flex: 1, gap: 3 }}>
-          <AppText variant="title" numberOfLines={2}>
-            {server.name}
-          </AppText>
-          <AppText variant="small" color="textSecondary" numberOfLines={2}>
-            {[server.node_name, server.allocation_ip ? `${server.allocation_ip}:${server.allocation_port ?? ''}` : null, server.egg_name]
-              .filter(Boolean)
-              .join(' · ') || 'No node information'}
-          </AppText>
-        </View>
-        <Pill label={status} tone={statusTone(status)} />
-      </Row>
+      <GradientCard>
+        <Row justify="space-between" align="flex-start">
+          <View style={{ flex: 1, gap: 3 }}>
+            <AppText variant="title" numberOfLines={2}>
+              {server.name}
+            </AppText>
+            <AppText variant="small" color="textSecondary" numberOfLines={2}>
+              {[server.node_name, server.allocation_ip ? `${server.allocation_ip}:${server.allocation_port ?? ''}` : null, server.egg_name]
+                .filter(Boolean)
+                .join(' · ') || 'No node information'}
+            </AppText>
+          </View>
+          <Pill label={status} tone={statusTone(status)} />
+        </Row>
+      </GradientCard>
 
       <Card>
         <Row justify="space-between">
-          <AppText variant="caption" color="textSecondary">
-            Controls
-          </AppText>
+          <Row gap={8} align="center">
+            <PlayIcon size={16} color={colors.primary} />
+            <AppText variant="caption" color="textSecondary">
+              Controls
+            </AppText>
+          </Row>
           <Pill label={connected ? 'Console live' : 'Console offline'} tone={connected ? 'success' : 'muted'} />
         </Row>
         <Row gap={8} wrap>
@@ -231,14 +260,17 @@ export default function ConsoleScreen() {
 
       <Card>
         <Row justify="space-between">
-          <AppText variant="caption" color="textSecondary">
-            Live usage
-          </AppText>
+          <Row gap={8} align="center">
+            <HardDriveIcon size={16} color={colors.primary} />
+            <AppText variant="caption" color="textSecondary">
+              Live usage
+            </AppText>
+          </Row>
           <AppText variant="small" color="textSecondary">
             Uptime {formatUptime(stats?.uptime)}
           </AppText>
         </Row>
-        <Meter label="CPU" value={stats?.cpu ?? 0} detail={`${Math.round(stats?.cpu ?? 0)}%`} />
+        <Meter label="CPU" value={stats?.cpu ?? 0} detail={`${Math.round(stats?.cpu ?? 0)}%`} tone={colors.info} />
         <Meter
           label="Memory"
           value={percent(memoryUsed, memoryLimit)}
@@ -261,9 +293,12 @@ export default function ConsoleScreen() {
 
       <Card style={{ padding: 0, gap: 0 }}>
         <Row justify="space-between" style={{ paddingHorizontal: 12, paddingTop: 12 }}>
-          <AppText variant="caption" color="textSecondary">
-            Console
-          </AppText>
+          <Row gap={8} align="center">
+            <TerminalIcon size={16} color={colors.primary} />
+            <AppText variant="caption" color="textSecondary">
+              Console
+            </AppText>
+          </Row>
           <Pressable onPress={() => setLines([])}>
             <AppText variant="small" color="primary">
               Clear
@@ -281,9 +316,22 @@ export default function ConsoleScreen() {
             </AppText>
           ) : (
             lines.map((line, index) => (
-              <AppText key={`${index}-${line.slice(0, 12)}`} variant="mono" color="consoleText" selectable>
-                {line}
-              </AppText>
+              <Text key={`${index}-${line.slice(0, 12)}`} selectable style={[styles.consoleLine, { color: colors.consoleText }]}>
+                {parseConsoleLine(line).map((span, spanIndex) => (
+                  <Text
+                    key={spanIndex}
+                    style={{
+                      color: span.color ?? colors.consoleText,
+                      backgroundColor: span.background,
+                      fontWeight: span.bold ? '700' : undefined,
+                      fontStyle: span.italic ? 'italic' : undefined,
+                      textDecorationLine: span.underline ? 'underline' : undefined,
+                      opacity: span.dim ? 0.65 : undefined,
+                    }}>
+                    {span.text}
+                  </Text>
+                ))}
+              </Text>
             ))
           )}
         </ScrollView>
@@ -327,23 +375,24 @@ export default function ConsoleScreen() {
             onPress={() => router.push({ pathname: links[section.href], params: { uuid } })}
             style={({ pressed }) => ({
               paddingHorizontal: 14,
-              paddingVertical: 13,
+              paddingVertical: 12,
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
+              gap: 12,
+              borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth + 0.5,
               borderTopColor: colors.border,
               opacity: pressed ? 0.7 : 1,
             })}>
-            <View style={{ gap: 2 }}>
+            <View style={[styles.manageIcon, { backgroundColor: alpha(section.rgb, 0.12) }]}>
+              <section.Icon size={20} color={`rgb(${section.rgb})`} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
               <AppText variant="body">{section.title}</AppText>
               <AppText variant="small" color="textSecondary">
                 {section.hint}
               </AppText>
             </View>
-            <AppText variant="heading" color="textSecondary">
-              ›
-            </AppText>
+            <ChevronRightIcon size={18} color={colors.textSecondary} />
           </Pressable>
         ))}
       </Card>
@@ -357,5 +406,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginTop: 10,
     borderRadius: 8,
+  },
+  consoleLine: {
+    fontFamily: Fonts?.mono,
+    fontSize: 12,
+    lineHeight: 19,
+  },
+  manageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

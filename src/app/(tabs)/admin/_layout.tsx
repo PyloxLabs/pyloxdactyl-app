@@ -14,19 +14,24 @@ export default function AdminLayout() {
   if (!user?.root_admin) return <Redirect href="/servers" />;
 
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerTintColor: colors.primary }}>
-      <Stack.Screen name="index" options={{ title: 'Admin' }} />
-      <Stack.Screen name="users" options={{ title: 'Users' }} />
-      <Stack.Screen name="user/[id]" options={{ title: 'User' }} />
-      <Stack.Screen name="servers" options={{ title: 'Servers' }} />
-      <Stack.Screen name="server-create" options={{ title: 'New server' }} />
-      <Stack.Screen name="server/[id]" options={{ title: 'Server' }} />
-      <Stack.Screen name="nodes" options={{ title: 'Nodes' }} />
-      <Stack.Screen name="node/[id]" options={{ title: 'Node' }} />
-      <Stack.Screen name="locations" options={{ title: 'Locations' }} />
-      <Stack.Screen name="eggs" options={{ title: 'Nests & eggs' }} />
-      <Stack.Screen name="egg/[id]" options={{ title: 'Egg' }} />
-      <Stack.Screen name="settings" options={{ title: 'Panel settings' }} />
+    <Stack
+      screenOptions={{
+        headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: colors.primary,
+        headerTitle: '',
+      }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="users" />
+      <Stack.Screen name="user/[id]" />
+      <Stack.Screen name="servers" />
+      <Stack.Screen name="server-create" />
+      <Stack.Screen name="server/[id]" />
+      <Stack.Screen name="nodes" />
+      <Stack.Screen name="node/[id]" />
+      <Stack.Screen name="locations" />
+      <Stack.Screen name="eggs" />
+      <Stack.Screen name="egg/[id]" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

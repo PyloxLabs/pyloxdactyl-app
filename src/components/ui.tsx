@@ -18,8 +18,12 @@ import {
 } from 'react-native';
 
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Crypto from 'expo-crypto';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Fonts, Radius, Spacing, type ThemeColor } from '@/constants/theme';
+import { Colors, Fonts, Radius, Spacing, alpha, Accent, type ThemeColor } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export function useColors() {
@@ -27,7 +31,20 @@ export function useColors() {
   return Colors[scheme === 'dark' ? 'dark' : 'light'];
 }
 
+export function useAccent() {
+  const scheme = useColorScheme();
+  return scheme === 'dark' ? Accent.dark : Accent.light;
+}
+
 type TextVariant = 'title' | 'heading' | 'body' | 'label' | 'small' | 'mono' | 'caption';
+
+const GRADIENTS = [
+  { start: 'rgba(168, 85, 247, 0.16)', end: 'rgba(249, 115, 22, 0.08)' },
+] as const;
+
+function schemeSurface(colors: ReturnType<typeof useColors>, accent: ReturnType<typeof useAccent>) {
+  return colors.background === '#09090B' ? '#18181B' : colors.background;
+}
 
 const textStyles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: '700', letterSpacing: -0.4 },
@@ -59,43 +76,110 @@ export function Screen({
   scroll = true,
   contentStyle,
   refreshControl,
+  footer,
+  footerSpace,
 }: {
   children: ReactNode;
   scroll?: boolean;
   contentStyle?: ViewStyle;
   refreshControl?: ReactElement<RefreshControlProps>;
+  footer?: ReactNode;
+  footerSpace?: number;
 }) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   if (!scroll) {
     return <View style={[{ flex: 1, backgroundColor: colors.background }, contentStyle]}>{children}</View>;
   }
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={[{ padding: Spacing.three, gap: Spacing.two + 4 }, contentStyle]}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={refreshControl}>
-      {children}
-    </ScrollView>
+    <View collapsable={false} style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          {
+            padding: Spacing.three,
+            paddingBottom: footer ? Spacing.three + (footerSpace ?? 0) : Spacing.three,
+            gap: Spacing.two + 4,
+          },
+          contentStyle,
+        ]}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={refreshControl}>
+        {children}
+      </ScrollView>
+      {footer ? (
+        <View
+          style={{
+            paddingHorizontal: Spacing.three,
+            paddingTop: Spacing.two,
+            paddingBottom: Spacing.two + insets.bottom,
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+            borderTopWidth: StyleSheet.hairlineWidth,
+          }}>
+          {footer}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+export function Card({ children, style, glow = false }: { children: ReactNode; style?: ViewStyle; glow?: boolean }) {
   const colors = useColors();
+  const accent = useAccent();
   return (
     <View
       style={[
         {
           backgroundColor: colors.backgroundElement,
-          borderColor: colors.border,
-          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: glow ? alpha(accent.rgb, 0.35) : colors.border,
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
           borderRadius: Radius.medium,
           padding: Spacing.three,
           gap: Spacing.two,
         },
+        glow
+          ? {
+              shadowColor: accent.glow,
+              shadowOpacity: 0.5,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 3 },
+              elevation: 3,
+            }
+          : null,
         style,
       ]}>
       {children}
+    </View>
+  );
+}
+
+export function GradientCard({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+  const colors = useColors();
+  const accent = useAccent();
+  return (
+    <View
+      style={[
+        {
+          borderColor: alpha(accent.rgb, 0.22),
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
+          borderRadius: Radius.medium,
+          overflow: 'hidden',
+        },
+        style,
+      ]}>
+      <View style={StyleSheet.absoluteFill}>
+        {GRADIENTS.map((gradient, index) => (
+          <LinearGradient
+            key={index}
+            colors={[gradient.start, gradient.end]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { backgroundColor: index === 0 ? colors.backgroundElement : 'transparent' }]}
+          />
+        ))}
+      </View>
+      <View style={{ padding: Spacing.three, gap: Spacing.two }}>{children}</View>
     </View>
   );
 }
@@ -133,6 +217,21 @@ export function Divider() {
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
+function useButtonTone(variant: ButtonVariant) {
+  const colors = useColors();
+  const accent = useAccent();
+  switch (variant) {
+    case 'primary':
+      return { background: colors.primary, foreground: colors.primaryText, border: 'transparent', glow: accent.glow, gradient: true };
+    case 'danger':
+      return { background: alpha('239, 68, 68', 0.15), foreground: colors.danger, border: alpha('239, 68, 68', 0.2), glow: null, gradient: false };
+    case 'secondary':
+      return { background: colors.backgroundSelected, foreground: colors.text, border: 'transparent', glow: null, gradient: false };
+    default:
+      return { background: 'transparent', foreground: colors.text, border: colors.border, glow: null, gradient: false };
+  }
+}
+
 export function Button({
   title,
   onPress,
@@ -150,11 +249,8 @@ export function Button({
   small?: boolean;
   style?: ViewStyle;
 }) {
-  const colors = useColors();
-  const background =
-    variant === 'primary' ? colors.primary : variant === 'danger' ? colors.danger : variant === 'secondary' ? colors.backgroundSelected : 'transparent';
-  const foreground =
-    variant === 'primary' ? colors.primaryText : variant === 'danger' ? '#FFFFFF' : variant === 'secondary' ? colors.text : colors.primary;
+  const tone = useButtonTone(variant);
+  const accent = useAccent();
   const inactive = disabled || loading;
 
   return (
@@ -163,22 +259,36 @@ export function Button({
       disabled={inactive}
       style={({ pressed }) => [
         {
-          backgroundColor: background,
-          borderColor: variant === 'ghost' ? 'transparent' : background,
-          borderWidth: 1,
+          backgroundColor: tone.gradient ? 'transparent' : tone.background,
+          borderColor: tone.border,
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
           borderRadius: Radius.small,
           paddingVertical: small ? 6 : 11,
-          paddingHorizontal: small ? 10 : 16,
+          paddingHorizontal: small ? 14 : 22,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
+          shadowColor: tone.glow ?? 'transparent',
+          shadowOpacity: tone.glow ? 0.45 : 0,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: tone.glow ? 3 : 0,
           opacity: inactive ? 0.45 : pressed ? 0.75 : 1,
         },
         style,
       ]}>
+      {tone.gradient ? (
+        <LinearGradient
+          colors={[accent.deep, tone.background]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
       {loading ? (
-        <ActivityIndicator color={foreground} size="small" />
+        <ActivityIndicator color={tone.foreground} size="small" />
       ) : (
-        <Text style={{ color: foreground, fontSize: small ? 13 : 15, fontWeight: '600' }}>{title}</Text>
+        <Text style={{ color: tone.foreground, fontSize: small ? 12 : 14, fontWeight: '600' }}>{title}</Text>
       )}
     </Pressable>
   );
@@ -203,11 +313,8 @@ export function IconButton({
   small?: boolean;
   style?: ViewStyle;
 }) {
-  const colors = useColors();
-  const background =
-    variant === 'primary' ? colors.primary : variant === 'danger' ? colors.danger : variant === 'secondary' ? colors.backgroundSelected : 'transparent';
-  const foreground =
-    variant === 'primary' ? colors.primaryText : variant === 'danger' ? '#FFFFFF' : variant === 'secondary' ? colors.text : colors.primary;
+  const tone = useButtonTone(variant);
+  const accent = useAccent();
   const inactive = disabled || loading;
   const size = small ? 34 : 42;
 
@@ -224,14 +331,28 @@ export function IconButton({
           borderRadius: Radius.small,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: background,
-          borderColor: variant === 'ghost' ? 'transparent' : background,
-          borderWidth: 1,
+          backgroundColor: tone.gradient || variant === 'ghost' ? 'transparent' : tone.background,
+          borderColor: tone.border,
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
+          overflow: 'hidden',
+          shadowColor: tone.glow ?? 'transparent',
+          shadowOpacity: tone.glow ? 0.45 : 0,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 3 },
+          elevation: tone.glow ? 3 : 0,
           opacity: inactive ? 0.45 : pressed ? 0.75 : 1,
         },
         style,
       ]}>
-      {loading ? <ActivityIndicator color={foreground} size="small" /> : icon(foreground)}
+      {tone.gradient ? (
+        <LinearGradient
+          colors={[accent.deep, tone.background]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
+      {loading ? <ActivityIndicator color={tone.foreground} size="small" /> : icon(tone.foreground)}
     </Pressable>
   );
 }
@@ -243,6 +364,7 @@ export function Field({
   ...inputProps
 }: TextInputProps & { label?: string; hint?: string; style?: ViewStyle }) {
   const colors = useColors();
+  const [focused, setFocused] = useState(false);
   return (
     <View style={[{ gap: Spacing.one + 2 }, style]}>
       {label ? (
@@ -252,17 +374,25 @@ export function Field({
       ) : null}
       <TextInput
         placeholderTextColor={colors.textSecondary}
+        onFocus={(event) => {
+          setFocused(true);
+          inputProps.onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setFocused(false);
+          inputProps.onBlur?.(event);
+        }}
         {...inputProps}
         style={{
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          borderWidth: 1,
+          backgroundColor: colors.backgroundElement,
+          borderColor: focused ? colors.primary : colors.border,
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
           borderRadius: Radius.small,
           color: colors.text,
-          paddingHorizontal: 12,
+          paddingHorizontal: 14,
           paddingVertical: 10,
-          fontSize: 15,
-          minHeight: 42,
+          fontSize: 14,
+          minHeight: 44,
           ...(inputProps.multiline ? { minHeight: 120, textAlignVertical: 'top' } : null),
         }}
       />
@@ -283,7 +413,7 @@ export function CheckRow({ label, checked, onPress }: { label: string; checked: 
         style={{
           width: 20,
           height: 20,
-          borderRadius: 5,
+          borderRadius: 6,
           borderWidth: 1.5,
           borderColor: checked ? colors.primary : colors.border,
           backgroundColor: checked ? colors.primary : 'transparent',
@@ -299,21 +429,43 @@ export function CheckRow({ label, checked, onPress }: { label: string; checked: 
   );
 }
 
-export function Pill({ label, tone = 'muted' }: { label: string; tone?: 'success' | 'danger' | 'warning' | 'primary' | 'muted' }) {
+type PillTone = 'success' | 'danger' | 'warning' | 'primary' | 'muted' | 'info';
+
+const PILL_TONES: Record<PillTone, string> = {
+  success: '34, 197, 94',
+  danger: '239, 68, 68',
+  warning: '234, 179, 8',
+  primary: '168, 85, 247',
+  muted: '107, 114, 128',
+  info: '59, 130, 246',
+};
+
+export function Pill({ label, tone = 'muted' }: { label: string; tone?: PillTone }) {
   const colors = useColors();
-  const color = tone === 'muted' ? colors.textSecondary : colors[tone];
+  const accent = useAccent();
+  const rgb = tone === 'primary' ? accent.rgb : PILL_TONES[tone];
+  const color = tone === 'muted' ? colors.textSecondary : tone === 'primary' ? accent.deep : colors[tone === 'info' ? 'primary' : tone];
   return (
-    <View style={{ backgroundColor: `${color}22`, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 }}>
-      <Text style={{ color, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
+    <View style={{ backgroundColor: alpha(rgb, 0.15), borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
+      <Text style={{ color, fontSize: 11, fontWeight: '600' }}>{label}</Text>
     </View>
   );
 }
 
 export function Warning({ children }: { children: ReactNode }) {
-  const colors = useColors();
   return (
-    <View style={{ backgroundColor: `${colors.danger}18`, borderColor: `${colors.danger}55`, borderWidth: 1, borderRadius: Radius.small, padding: 10 }}>
+    <View style={{ backgroundColor: alpha('239, 68, 68', 0.1), borderColor: alpha('239, 68, 68', 0.2), borderWidth: StyleSheet.hairlineWidth + 0.5, borderRadius: Radius.small, padding: 12 }}>
       <AppText variant="small" color="danger">
+        {children}
+      </AppText>
+    </View>
+  );
+}
+
+export function Notice({ children }: { children: ReactNode }) {
+  return (
+    <View style={{ backgroundColor: alpha('34, 197, 94', 0.1), borderColor: alpha('34, 197, 94', 0.2), borderWidth: StyleSheet.hairlineWidth + 0.5, borderRadius: Radius.small, padding: 12 }}>
+      <AppText variant="small" color="success">
         {children}
       </AppText>
     </View>
@@ -379,6 +531,7 @@ export function KeyValue({ label, value, mono = false }: { label: string; value:
 
 export function Meter({ label, value, detail, tone }: { label: string; value: number; detail?: string; tone?: string }) {
   const colors = useColors();
+  const accent = useAccent();
   const width = `${Math.max(0, Math.min(100, value))}%` as const;
   return (
     <View style={{ gap: 5 }}>
@@ -389,7 +542,18 @@ export function Meter({ label, value, detail, tone }: { label: string; value: nu
         <AppText variant="small">{detail ?? `${Math.round(value)}%`}</AppText>
       </Row>
       <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.backgroundSelected, overflow: 'hidden' }}>
-        <View style={{ height: 6, width, borderRadius: 3, backgroundColor: tone ?? colors.primary }} />
+        <View
+          style={{
+            height: 6,
+            width,
+            borderRadius: 3,
+            backgroundColor: tone ?? colors.primary,
+            shadowColor: tone ?? accent.glow,
+            shadowOpacity: 0.6,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 0 },
+          }}
+        />
       </View>
     </View>
   );
@@ -404,31 +568,42 @@ export function Choice<T extends string | number>({
   value: T | null | undefined;
   onChange: (value: T) => void;
 }) {
-  const colors = useColors();
   return (
     <Row wrap gap={6}>
-      {options.map((option) => {
-        const active = option.value === value;
-        return (
-          <Pressable
-            key={String(option.value)}
-            onPress={() => onChange(option.value)}
-            style={({ pressed }) => [
-              {
-                paddingVertical: 7,
-                paddingHorizontal: 12,
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: active ? colors.primary : colors.border,
-                backgroundColor: active ? colors.primary : colors.backgroundElement,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}>
-            <Text style={{ color: active ? colors.primaryText : colors.text, fontSize: 13, fontWeight: '600' }}>{option.label}</Text>
-          </Pressable>
-        );
-      })}
+      {options.map((option) => (
+        <ChoiceChip key={String(option.value)} option={option} active={option.value === value} onChange={onChange} />
+      ))}
     </Row>
+  );
+}
+
+function ChoiceChip<T extends string | number>({
+  option,
+  active,
+  onChange,
+}: {
+  option: { label: string; value: T };
+  active: boolean;
+  onChange: (value: T) => void;
+}) {
+  const colors = useColors();
+  const accent = useAccent();
+  return (
+    <Pressable
+      onPress={() => onChange(option.value)}
+      style={({ pressed }) => [
+        {
+          paddingVertical: 7,
+          paddingHorizontal: 14,
+          borderRadius: 999,
+          borderWidth: StyleSheet.hairlineWidth + 0.5,
+          borderColor: active ? alpha(accent.rgb, 0.5) : colors.border,
+          backgroundColor: active ? alpha(accent.rgb, 0.14) : 'transparent',
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}>
+      <Text style={{ color: active ? accent.deep : colors.textSecondary, fontSize: 13, fontWeight: '600' }}>{option.label}</Text>
+    </Pressable>
   );
 }
 
@@ -548,20 +723,26 @@ export function ModalCard({
   children: ReactNode;
 }) {
   const colors = useColors();
+  const accent = useAccent();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, justifyContent: 'center', padding: 20, backgroundColor: 'rgba(0,0,0,0.55)' }}>
+        style={{ flex: 1, justifyContent: 'center', padding: 20, backgroundColor: 'rgba(0,0,0,0.6)' }}>
         <View
           style={{
-            backgroundColor: colors.backgroundElement,
-            borderRadius: Radius.large,
-            borderWidth: StyleSheet.hairlineWidth,
+            backgroundColor: schemeSurface(colors, accent),
+            borderRadius: Radius.medium,
+            borderWidth: StyleSheet.hairlineWidth + 0.5,
             borderColor: colors.border,
-            padding: 20,
+            padding: 24,
             gap: 12,
             maxHeight: '85%',
+            shadowColor: '#000',
+            shadowOpacity: 0.5,
+            shadowRadius: 24,
+            shadowOffset: { width: 0, height: 12 },
+            elevation: 8,
           }}>
           {title ? <AppText variant="heading">{title}</AppText> : null}
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 12 }}>
@@ -571,5 +752,51 @@ export function ModalCard({
         </View>
       </KeyboardAvoidingView>
     </Modal>
+  );
+}
+
+export function Avatar({ email, name, size = 28 }: { email?: string | null; name?: string | null; size?: number }) {
+  const colors = useColors();
+  const [uri, setUri] = useState<string | null>(null);
+  const initial = (name || '?').trim().charAt(0).toUpperCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    const normalized = email?.trim().toLowerCase();
+    if (!normalized) {
+      setUri(null);
+      return;
+    }
+    Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.MD5, normalized)
+      .then((hash) => {
+        if (!cancelled) setUri(`https://www.gravatar.com/avatar/${hash}?s=${size * 2}&d=identicon&r=g`);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [email, size]);
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}>
+      <Text style={{ color: '#fff', fontSize: size * 0.42, fontWeight: '700' }}>{initial}</Text>
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          onError={() => setUri(null)}
+        />
+      ) : null}
+    </View>
   );
 }

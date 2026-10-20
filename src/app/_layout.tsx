@@ -27,9 +27,27 @@ function RootNavigator() {
   }, []);
 
   return (
-    <NavigationThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <NavigationThemeProvider
+      value={
+        scheme === 'dark'
+          ? {
+              ...DarkTheme,
+              colors: { ...DarkTheme.colors, background: colors.background, card: colors.backgroundElement, border: colors.border, primary: colors.primary, text: colors.text },
+            }
+          : {
+              ...DefaultTheme,
+              colors: { ...DefaultTheme.colors, background: colors.background, card: colors.backgroundElement, border: colors.border, primary: colors.primary, text: colors.text },
+            }
+      }>
       <AuthProvider>
-        <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerTintColor: colors.primary }}>
+        <Stack
+          screenOptions={{
+            headerBackButtonDisplayMode: 'minimal',
+            headerTintColor: colors.primary,
+            headerStyle: { backgroundColor: colors.background },
+            headerTitleStyle: { color: colors.text, fontWeight: '700' },
+            contentStyle: { backgroundColor: colors.background },
+          }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="connect" options={{ title: 'Connect to panel' }} />
           <Stack.Screen name="login" options={{ title: 'Sign in' }} />
