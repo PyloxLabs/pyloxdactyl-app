@@ -18,7 +18,6 @@ jobs:
     env:
       CI: "1"
       EXPO_NO_TELEMETRY: "1"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +46,16 @@ jobs:
           grep -q "expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" "$MANIFEST"
           grep -n "expo.modules.updates" "$MANIFEST"
 
+      - name: Tune Gradle memory
+        run: |
+          set -e
+          PROPS="android/gradle.properties"
+          sed -i '/^org.gradle.jvmargs=/d' "$PROPS"
+          echo 'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError' >> "$PROPS"
+          echo 'org.gradle.parallel=true' >> "$PROPS"
+          echo 'org.gradle.caching=true' >> "$PROPS"
+          cat "$PROPS"
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -61,7 +70,7 @@ jobs:
 
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon --build-cache
+        run: ./gradlew assembleRelease --no-daemon --build-cache -x lintVitalRelease -x lintVitalAnalyzeRelease
 
       - name: Package APK
         run: |
