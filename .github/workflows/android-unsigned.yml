@@ -78,13 +78,21 @@ jobs:
 
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon --build-cache -x lintVitalRelease -x lintVitalAnalyzeRelease
+        run: ./gradlew assembleRelease --no-daemon --build-cache --stacktrace -x lintVitalRelease -x lintVitalAnalyzeRelease 2>&1 | tee gradle-build.log
 
       - name: Package APK
         run: |
           APK="$(ls -d android/app/build/outputs/apk/release/*.apk | head -n1)"
           echo "apk=$APK"
           cp "$APK" Pyloxdactyl-unsigned.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gradle-build-log
+          path: android/gradle-build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - uses: actions/upload-artifact@v4
         with:
