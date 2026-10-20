@@ -66,6 +66,14 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
+      - name: Debug expo-updates resource generation
+        run: |
+          echo "--- resolve expo-updates dir ---"
+          node -e "console.log(require('path').dirname(require.resolve('expo-updates/package.json')));"
+          echo "--- createUpdatesResources ---"
+          node "$(node -e "console.log(require('path').dirname(require.resolve('expo-updates/package.json')));")/utils/build/createUpdatesResources.js" android "$PWD" "$PWD/debug-updates-res" all "$ENTRY_FILE"
+          echo "--- done ---"
+
       - name: Build release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon --build-cache -x lintVitalRelease -x lintVitalAnalyzeRelease
